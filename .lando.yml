@@ -9,7 +9,7 @@ config:
   php: 8.2
   xdebug: true
   composer_version: 2.7.0
-  webroot: public
+  webroot: /public
   cache: redis
 
 services:
@@ -26,11 +26,7 @@ services:
         XDEBUG_CONFIG: "remote_enable=1"
 
   database:
-    type: postgres:15
-    creds:
-      database: test
-      user: postgres
-      password: psql
+    type: mysql:8.0
 
   node:
     type: node:18
