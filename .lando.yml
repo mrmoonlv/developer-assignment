@@ -1,0 +1,52 @@
+name: test
+recipe: laravel
+
+#excludes:
+#  - vendor
+
+config:
+  via: nginx
+  php: 8.2
+  xdebug: true
+  composer_version: 2.7.0
+  webroot: /public
+  cache: redis
+
+services:
+  appserver:
+    type: php:8.2
+    build_as_root:
+      - apt-get update -y
+      - docker-php-ext-install sockets
+      - docker-php-ext-enable sockets
+    overrides:
+      environment:
+        PHP_IDE_CONFIG: "serverName=appserver"
+        XDEBUG_SESSION_START: lando
+        XDEBUG_CONFIG: "remote_enable=1"
+
+  database:
+    type: mysql:8.0
+
+  node:
+    type: node:18
+    build:
+      - npm install
+      - npm run build
+
+tooling:
+  node:
+    service: node
+  npm:
+    service: node
+  warmup:
+    service: appserver
+    cmd:
+      - appserver: 'composer install'
+      - appserver: 'composer install --working-dir tools'
+      - appserver: 'php artisan migrate'
+      - appserver: 'php artisan cache:clear'
+      - appserver: 'php artisan config:clear'
+      - appserver: 'php artisan view:clear'
+      - node: 'npm install'
+      - node: 'npm run build'
